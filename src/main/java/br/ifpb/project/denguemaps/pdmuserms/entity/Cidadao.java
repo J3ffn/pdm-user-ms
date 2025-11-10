@@ -33,6 +33,6 @@ public class Cidadao {
     private String cpf;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_endereco_id", nullable = false)
+    @JoinColumn(name = "fk_endereco_id", nullable = true)
     private Endereco endereco;
 }

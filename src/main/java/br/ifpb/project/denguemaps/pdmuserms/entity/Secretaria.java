@@ -30,6 +30,6 @@ public class Secretaria {
     @Column(name = "fk_endereco_id")
     private UUID enderecoId;
 
-    @Column(name = "fk_gestor_id", nullable = false)
+    @Column(name = "fk_gestor_id", nullable = true)
     private UUID gestorId;
 }

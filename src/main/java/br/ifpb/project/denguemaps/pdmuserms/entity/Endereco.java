@@ -33,6 +33,6 @@ public class Endereco {
     private String numero;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_municipio_id", nullable = false)
+    @JoinColumn(name = "fk_municipio_id", nullable = true)
     private Municipio municipio;
 }

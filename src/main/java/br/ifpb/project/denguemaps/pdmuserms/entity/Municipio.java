@@ -1,5 +1,6 @@
 package br.ifpb.project.denguemaps.pdmuserms.entity;
 
+import br.ifpb.project.denguemaps.pdmuserms.enums.Estado;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,9 +33,9 @@ public class Municipio {
     private String geolocalizacao;
 
     @Column(nullable = false, length = 2)
-    private String estado;
+    private Estado estado;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_secretaria_id", nullable = false)
+    @JoinColumn(name = "fk_secretaria_id", nullable = true)
     private Secretaria secretaria;
 }

@@ -34,7 +34,7 @@ public class Report {
     private String classificacaoRisco;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_cidadao_id", nullable = false)
+    @JoinColumn(name = "fk_cidadao_id", nullable = true)
     private Cidadao cidadao;
 
     @Column(name = "created_at", nullable = false)

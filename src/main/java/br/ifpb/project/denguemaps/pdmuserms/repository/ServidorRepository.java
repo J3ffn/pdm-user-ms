@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ServidorRepository extends JpaRepository<Servidor, UUID> {
     Optional<Servidor> findByRefKeycloakId(UUID refKeycloakId);
+    Optional<Servidor> findByCpf(String cpf);
 }
