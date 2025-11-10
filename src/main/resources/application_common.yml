@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: ${DATA_POSTGRES_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${DATA_POSTGRES_URL:jdbc:postgresql://localhost:5432/denguemaps_db}
     username: ${DATA_POSTGRES_USERNAME:denguemaps}
     password: ${DATA_POSTGRES_PASSWORD:1234}
   jpa:

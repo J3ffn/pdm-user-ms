@@ -56,16 +56,19 @@ public class ConviteService {
     private record AdminTokenResponse(String access_token, int expires_in) {}
     @Transactional
     public Convite criarConvite(CreateConviteRequest dto, Servidor criador) {
-        Secretaria secretaria = secretariaRepository.findById(dto.secretariaId())
-                .orElseThrow(() -> new IllegalArgumentException("Secretaria não encontrada"));
-        Municipio municipio = municipioRepository.findById(dto.municipioId())
-                .orElseThrow(() -> new IllegalArgumentException("Município não encontrado"));
-
         Convite convite = new Convite();
+        try{
+            Municipio municipio = municipioRepository.findById(dto.municipioId())
+                    .orElseThrow(() -> new IllegalArgumentException("Município não encontrado"));
+            convite.setMunicipio(municipio);
+            Secretaria secretaria = secretariaRepository.findById(dto.secretariaId())
+                    .orElseThrow(() -> new IllegalArgumentException("Secretaria não encontrada"));
+            convite.setSecretaria(secretaria);
+        }catch (IllegalArgumentException ignored){
+            // Se nao existir, continua o convite.
+        }
 
         convite.setToken(UUID.randomUUID().toString());
-        convite.setSecretaria(secretaria);
-        convite.setMunicipio(municipio);
         convite.setServidorCriador(criador);
         convite.setPerfilDestino(dto.perfilDestino() != null ? dto.perfilDestino() : "AGENTE_SANITARIO");
         convite.setExpiresAt(OffsetDateTime.now().plusDays(2));
@@ -87,6 +90,8 @@ public class ConviteService {
         }
 
         Servidor servidor = returnEntity(convite, req);
+        // Gerar chave aleatoria para controle do not null.
+        servidor.setRefKeycloakId(UUID.randomUUID());
         servidor = saveEntity(servidor);
 
         servidor.setRefKeycloakId(saveKeycloak(req, servidor)); // salvando no keycloak, recuperando como FK
@@ -153,7 +158,7 @@ public class ConviteService {
 
     private Object buildKeycloakUser(RegistrarServidorRequest dto) {
         return Map.of(
-                "username", dto.nome(),
+                "username", dto.cpf(),
                 "email", dto.email(),
                 "firstName", dto.firstName(),
                 "lastName", dto.lastName(),
@@ -170,23 +175,23 @@ public class ConviteService {
 
     private String getAdminAccessToken() {
         String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
-        Map<String, String> formData = Map.of(
-                "grant_type", "password",
-                "client_id", clientId,
-                "client_secret", clientSecret,
-                "username", adminUsername,
-                "password", adminPassword
+
+        // 🚨 1. CONSTRUA A STRING NO FORMATO x-www-form-urlencoded
+        String formDataString = String.format(
+                "grant_type=password&client_id=%s&client_secret=%s&username=%s&password=%s",
+                clientId, clientSecret, adminUsername, adminPassword
         );
 
         try {
+            // 🚨 2. Use a String construída no body()
             AdminTokenResponse response = restClient.post()
                     .uri(tokenUrl)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(formData) // O RestClient tentará serializar este Map
+                    .body(formDataString) // <--- Corrigido para enviar a String
                     .retrieve()
                     .body(AdminTokenResponse.class);
 
-            // Verificação de null (embora 'body' de RestClient normalmente lance exceção em 4xx/5xx)
+            // ... (resto do método permanece igual)
             if (response == null || response.access_token() == null) {
                 throw new ExternalAuthException("Resposta do Keycloak inválida ou vazia.");
             }
@@ -194,11 +199,9 @@ public class ConviteService {
             return response.access_token();
 
         } catch (HttpClientErrorException e) {
-            // Captura erros 4xx (Unauthorized, Forbidden, etc.)
             log.error("Falha ao obter token de admin do Keycloak. HTTP Status: {}", e.getStatusCode(), e);
             throw new ExternalAuthException("Falha ao obter token de admin: Credenciais inválidas.");
         } catch (Exception e) {
-            // Captura outros erros (Conexão, I/O)
             log.error("Erro inesperado ao conectar ao Keycloak.", e);
             throw new RuntimeException("Erro interno ao obter token de admin.", e);
         }
