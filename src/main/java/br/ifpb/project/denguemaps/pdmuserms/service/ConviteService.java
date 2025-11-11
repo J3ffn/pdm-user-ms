@@ -23,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.http.MediaType;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +90,7 @@ public class ConviteService {
         }
 
         Servidor servidor = returnEntity(convite, req);
+        servidor.setRefKeycloakId(UUID.randomUUID());
         servidor = saveEntity(servidor);
 
         servidor.setRefKeycloakId(saveKeycloak(req, servidor)); // salvando no keycloak, recuperando como FK
@@ -153,7 +157,7 @@ public class ConviteService {
 
     private Object buildKeycloakUser(RegistrarServidorRequest dto) {
         return Map.of(
-                "username", dto.nome(),
+                "username", dto.cpf(),
                 "email", dto.email(),
                 "firstName", dto.firstName(),
                 "lastName", dto.lastName(),
@@ -170,19 +174,21 @@ public class ConviteService {
 
     private String getAdminAccessToken() {
         String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
-        Map<String, String> formData = Map.of(
-                "grant_type", "password",
-                "client_id", clientId,
-                "client_secret", clientSecret,
-                "username", adminUsername,
-                "password", adminPassword
-        );
+
+        // 1. Crie um MultiValueMap para o formato x-www-form-urlencoded
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "password");
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+        formData.add("username", adminUsername);
+        formData.add("password", adminPassword);
 
         try {
             AdminTokenResponse response = restClient.post()
                     .uri(tokenUrl)
+                    // 2. O ContentType é mantido como application/x-www-form-urlencoded
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(formData) // O RestClient tentará serializar este Map
+                    .body(formData) // 3. Agora passa o MultiValueMap
                     .retrieve()
                     .body(AdminTokenResponse.class);
 
