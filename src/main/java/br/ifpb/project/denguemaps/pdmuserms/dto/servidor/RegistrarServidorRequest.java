@@ -9,6 +9,5 @@ public record RegistrarServidorRequest(
         String cpf,
         String rg,
         String email,
-        String password,
-        UUID refKeycloakId
+        String password
 ) {}

@@ -106,16 +106,10 @@ public class ServidorService {
 
         // 3. Mapeia a Entidade e os Detalhes do Keycloak para o DTO de Resposta
         return new ServidorRegistrationResponseDTO(
-                keycloakId,
                 (String) keycloakDetails.get("username"),
-                (String) keycloakDetails.get("email"),
-                (String) keycloakDetails.get("firstName"),
-                (String) keycloakDetails.get("lastName"),
                 servidor.getNome(),
                 servidor.getCpf(),
-                servidor.getRg(),
-                servidor.getSecretaria(),
-                servidor.getMunicipio()
+                servidor.getRg()
         );
     }
 

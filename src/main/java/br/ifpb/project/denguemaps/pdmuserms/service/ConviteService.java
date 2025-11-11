@@ -2,6 +2,7 @@ package br.ifpb.project.denguemaps.pdmuserms.service;
 
 
 import br.ifpb.project.denguemaps.pdmuserms.dto.servidor.RegistrarServidorRequest;
+import br.ifpb.project.denguemaps.pdmuserms.dto.servidor.ServidorRegistrationResponseDTO;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Convite;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Municipio;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Secretaria;
@@ -78,7 +79,7 @@ public class ConviteService {
     }
 
     @Transactional
-    public Servidor registrarServidor(String token, RegistrarServidorRequest req) {
+    public ServidorRegistrationResponseDTO registrarServidor(String token, RegistrarServidorRequest req) {
         Convite convite = conviteRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Convite inválido"));
 
@@ -101,7 +102,7 @@ public class ConviteService {
         convite.setUsedAt(OffsetDateTime.now());
         conviteRepository.save(convite);
 
-        return servidor;
+        return returnResponseServidorDTO(servidor);
     }
 
 
@@ -114,6 +115,14 @@ public class ConviteService {
         servidor.setCpf(registrarServidorRequest.cpf());
         servidor.setMunicipio(convite.getMunicipio());
         return servidor;
+    }
+
+    private ServidorRegistrationResponseDTO returnResponseServidorDTO(Servidor servidor){
+        return new ServidorRegistrationResponseDTO(
+                servidor.getCpf(),
+                servidor.getNome(),
+                servidor.getCpf(),
+                servidor.getRg());
     }
 
     private Servidor saveEntity(Servidor servidor){
@@ -174,7 +183,7 @@ public class ConviteService {
     }
 
     private String getAdminAccessToken() {
-        String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
+                                                String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
 
         // 🚨 1. CONSTRUA A STRING NO FORMATO x-www-form-urlencoded
         String formDataString = String.format(

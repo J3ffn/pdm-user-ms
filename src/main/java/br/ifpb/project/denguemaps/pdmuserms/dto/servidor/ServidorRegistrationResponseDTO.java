@@ -6,19 +6,10 @@ import java.util.UUID;
 
 public record ServidorRegistrationResponseDTO(
         // Dados do Keycloak
-        UUID fkkeycloakId,
         String username,
-        String email,
-        String firstName,
-        String lastName,
-
-        // Dados de Negócio (PostgreSQL)
         String nome,
         String cpf,
-        String rg,
+        String rg
 
-        // Dados das Foreign Keys
-        Secretaria secretaria,
-        Municipio municipio
 ) {
 }
