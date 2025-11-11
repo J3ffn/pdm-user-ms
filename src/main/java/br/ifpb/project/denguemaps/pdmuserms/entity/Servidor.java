@@ -38,7 +38,7 @@ public class Servidor {
     @Column(nullable = false, length = 9)
     private String rg;
 
-    @Column(name = "ref_keycloak_id", nullable = false)
+    @Column(name = "ref_keycloak_id", nullable = true)
     private UUID refKeycloakId;
 
     @Column(name = "status_created")

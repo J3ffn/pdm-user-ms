@@ -7,9 +7,12 @@ import br.ifpb.project.denguemaps.pdmuserms.entity.Secretaria;
 import br.ifpb.project.denguemaps.pdmuserms.enums.Estado;
 import br.ifpb.project.denguemaps.pdmuserms.repository.MunicipioRepository;
 import br.ifpb.project.denguemaps.pdmuserms.repository.SecretariaRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -17,16 +20,15 @@ import java.util.UUID;
 public class MunicipioService {
     private final MunicipioRepository municipioRepository;
     private final SecretariaRepository secretariaRepository;
+    private final ObjectMapper objectMapper;
 
-    public MunicipioResponseDTO registrarMunicipio(MunicipioCreateRequestDTO municipioCreateRequestDTO){
+    public MunicipioResponseDTO registrarMunicipio(MunicipioCreateRequestDTO municipioCreateRequestDTO) {
         Secretaria secretaria;
         Municipio municipio = returnEntity(municipioCreateRequestDTO);
-        try{
-            secretaria = secretariaRepository
-                    .findById(UUID.fromString(municipioCreateRequestDTO.getFkSecretariaId()))
-                    .orElseThrow(() -> new IllegalArgumentException("Secretaria não encontrada"));
+        try {
+            secretaria = secretariaRepository.findById(UUID.fromString(municipioCreateRequestDTO.getFkSecretariaId())).orElseThrow(() -> new IllegalArgumentException("Secretaria não encontrada"));
             municipio.setSecretaria(secretaria);
-        }catch (IllegalArgumentException ignored){
+        } catch (IllegalArgumentException ignored) {
             // Nao existe secretaria informada, continua a criar o municipio.
         }
         municipio = saveEntity(municipio);
@@ -34,23 +36,33 @@ public class MunicipioService {
 
     }
 
-    private Municipio saveEntity(Municipio municipio){
+    private Municipio saveEntity(Municipio municipio) {
         return municipioRepository.save(municipio);
     }
-    public MunicipioResponseDTO buscarMunicipioNomeEstado(String nome, Estado estado){
-        Municipio municipio = municipioRepository.findByNomeAndEstado(nome, estado)
-                .orElseThrow(() -> new IllegalArgumentException("Municipiuo não encontrado"));
+
+    public List<MunicipioResponseDTO> buscarTodosMunicipios() {
+        List<Municipio> municipios = municipioRepository.findAll();
+        return municipios
+                .stream()
+                .map(
+                        municipio -> objectMapper.convertValue(municipio, MunicipioResponseDTO.class)
+                ).toList();
+    }
+
+    public MunicipioResponseDTO buscarMunicipioNomeEstado(String nome, Estado estado) {
+        Municipio municipio = municipioRepository.findByNomeAndEstado(nome, estado).orElseThrow(() -> new IllegalArgumentException("Municipiuo não encontrado"));
         return returnResponse(municipio);
     }
 
-    private Municipio returnEntity(MunicipioCreateRequestDTO municipioCreateRequestDTO){
+    private Municipio returnEntity(MunicipioCreateRequestDTO municipioCreateRequestDTO) {
         Municipio municipio = new Municipio();
         municipio.setNome(municipioCreateRequestDTO.getNome());
         municipio.setEstado(municipioCreateRequestDTO.getEstado());
         municipio.setGeolocalizacao(municipioCreateRequestDTO.getGeolocalizacao());
         return municipio;
     }
-    private MunicipioResponseDTO returnResponse(Municipio municipio){
+
+    private MunicipioResponseDTO returnResponse(Municipio municipio) {
         MunicipioResponseDTO municipioResponseDTO = new MunicipioResponseDTO();
         municipioResponseDTO.setNome(municipio.getNome());
         municipioResponseDTO.setGeolocalizacao(municipio.getGeolocalizacao());

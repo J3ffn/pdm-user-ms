@@ -3,6 +3,8 @@ package br.ifpb.project.denguemaps.pdmuserms.entity;
 import br.ifpb.project.denguemaps.pdmuserms.enums.Estado;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -33,6 +35,7 @@ public class Municipio {
     private String geolocalizacao;
 
     @Column(nullable = false, length = 2)
+    @Enumerated(EnumType.STRING)
     private Estado estado;
 
     @ManyToOne(fetch = FetchType.LAZY)

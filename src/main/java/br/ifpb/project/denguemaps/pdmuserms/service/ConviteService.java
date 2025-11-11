@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class ConviteService {
 
     private final ConviteRepository conviteRepository;
@@ -43,7 +43,6 @@ public class ConviteService {
     private String keycloakUrl;
     @Value("${keycloak.realm}")
     private String realm;
-
     @Value("${keycloak.client-id}")
     private String clientId;
     @Value("${keycloak.client-secret}")
@@ -54,6 +53,7 @@ public class ConviteService {
     private String adminPassword;
 
     private record AdminTokenResponse(String access_token, int expires_in) {}
+
     @Transactional
     public Convite criarConvite(CreateConviteRequest dto, Servidor criador) {
         Secretaria secretaria = secretariaRepository.findById(dto.secretariaId())
