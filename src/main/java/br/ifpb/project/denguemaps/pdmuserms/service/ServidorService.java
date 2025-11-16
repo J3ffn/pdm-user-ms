@@ -146,7 +146,7 @@ public class ServidorService {
 
         // Prepara o corpo da requisição APENAS com os campos do Keycloak
         Map<String, Object> keycloakUpdateRepresentation = Map.of(
-                "firstName", dto.firstName(),
+                "firstName", dto.cpf(),
                 "lastName", dto.lastName(),
                 "email", dto.email()
                 // Outros campos como username e enabled não são alterados

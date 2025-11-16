@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
@@ -170,13 +172,12 @@ public class ConviteService {
 
     private String getAdminAccessToken() {
         String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
-        Map<String, String> formData = Map.of(
-                "grant_type", "password",
-                "client_id", clientId,
-                "client_secret", clientSecret,
-                "username", adminUsername,
-                "password", adminPassword
-        );
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "password");
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+        formData.add("username", adminUsername);
+        formData.add("password", adminPassword);
 
         try {
             AdminTokenResponse response = restClient.post()
