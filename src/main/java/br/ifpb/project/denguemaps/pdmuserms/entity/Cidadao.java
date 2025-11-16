@@ -1,12 +1,6 @@
 package br.ifpb.project.denguemaps.pdmuserms.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +18,7 @@ public class Cidadao {
 
     @Id
     @Column(name = "cidadao_id")
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false)
@@ -32,7 +27,10 @@ public class Cidadao {
     @Column(nullable = false, unique = true, length = 11)
     private String cpf;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "fk_endereco_id", nullable = true)
     private Endereco endereco;
+
+    @Column(name = "ref_keycloak_id",nullable = false, unique = true)
+    private UUID refKeycloakId;
 }
