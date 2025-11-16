@@ -1,5 +1,6 @@
 package br.ifpb.project.denguemaps.pdmuserms.service;
 
+import br.ifpb.project.denguemaps.pdmuserms.dto.cidadao.CidadaoResponseDTO;
 import br.ifpb.project.denguemaps.pdmuserms.dto.report.ReportCriacaoDTO;
 import br.ifpb.project.denguemaps.pdmuserms.dto.report.ReportResponseDTO;
 import br.ifpb.project.denguemaps.pdmuserms.dto.report.ReportUpdateDTO;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,11 +48,31 @@ public class ReportService {
         return mapearReportsResponseDTO(reports);
     }
 
+    @Transactional(readOnly = true)
+    public List<ReportResponseDTO> buscarReportEspecifico(UUID uuid){
+        List<Report> reports = reportRepository.findAllById(Collections.singleton(uuid));
+        return mapearReportsResponseDTO(reports);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReportResponseDTO> buscarReportCidadaoEspecifico(UUID uuid){
+        List<Report> reports = reportRepository.findByCidadao_Id(uuid);
+        return mapearReportsResponseDTO(reports);
+    }
+
+    public void deletarReportEspecifico(UUID uuid){
+        deletarEntidadeNaoRetornar(uuid);
+    }
+
 
 
     // Metodos auxiliares:
     private Report salvarEntidadeRetornar(Report report){
         return reportRepository.save(report);
+    }
+
+    private void deletarEntidadeNaoRetornar(UUID uuid){
+        reportRepository.deleteById(uuid);
     }
     private Report formatarReportRetornar(ReportCriacaoDTO reportCriacaoDTO){
         Report report = new Report();

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/api/report")
@@ -37,6 +38,33 @@ public class ReportController {
     ) {
         ReportResponseDTO reportResponseDTO = reportService.atualizarReport(request);
         return new ResponseEntity<>(reportResponseDTO, HttpStatus.OK);
+    }
+
+
+    @DeleteMapping
+    public ResponseEntity<String> deletarReport(@AuthenticationPrincipal Jwt jwt,
+                                                @RequestParam UUID uuid
+    ){
+        reportService.deletarReportEspecifico(uuid);
+        return new ResponseEntity<String>("", HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/esp")
+    public ResponseEntity<List<ReportResponseDTO>> buscarReportEspecifico(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam UUID uuid
+            ){
+        List<ReportResponseDTO> listaReport = reportService.buscarReportEspecifico(uuid);
+        return new ResponseEntity<>(listaReport, HttpStatus.OK);
+    }
+
+    @GetMapping("/esp-cidadao")
+    public ResponseEntity<List<ReportResponseDTO>> buscarReportCidadaoEspecifico(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam UUID uuid
+    ){
+        List<ReportResponseDTO> listaCidadaoReport = reportService.buscarReportCidadaoEspecifico(uuid);
+        return new ResponseEntity<>(listaCidadaoReport, HttpStatus.OK);
     }
 
     @GetMapping("/all")
