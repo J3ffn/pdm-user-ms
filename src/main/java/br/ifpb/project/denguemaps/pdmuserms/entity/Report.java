@@ -1,16 +1,11 @@
 package br.ifpb.project.denguemaps.pdmuserms.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -25,9 +20,11 @@ public class Report {
 
     @Id
     @Column(name = "report_id")
+    @GeneratedValue
     private UUID id;
 
     @Column(columnDefinition = "jsonb", nullable = false)
+    @Type(io.hypersistence.utils.hibernate.type.json.JsonType.class)
     private String coordenadas;
 
     @Column(name = "classificacao_risco")
