@@ -8,6 +8,7 @@ import br.ifpb.project.denguemaps.pdmuserms.dto.report.ReportResponseDTO;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Cidadao;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Questionario;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Report;
+import br.ifpb.project.denguemaps.pdmuserms.repository.CidadaoRepository;
 import br.ifpb.project.denguemaps.pdmuserms.repository.QuestionarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QuestionarioService {
     private final QuestionarioRepository questionarioRepository;
+    private final CidadaoRepository cidadaoRepository;
     private final CidadaoService cidadaoService;
 
     public QuestionarioResponseDTO registrarQuestionarioComRetorno(
-            QuestionarioCriarDTO questionarioCriarDTO,
-            String token){
+            QuestionarioCriarDTO questionarioCriarDTO){
         Questionario questionario = new Questionario();
-        aplicarCriacaoEntidadeQuestionarioSemRetorno(questionario, questionarioCriarDTO, token);
+        aplicarCriacaoEntidadeQuestionarioSemRetorno(questionario, questionarioCriarDTO);
         questionario.setCreatedAt(OffsetDateTime.now());
         questionario.setUpdatedBy(OffsetDateTime.now());
         questionario = salvarQuestionario(questionario);
@@ -98,7 +99,7 @@ public class QuestionarioService {
         questionarioResponseDTO.setRespostas(questionario.getRespostas());
         questionarioResponseDTO.setCreatedAt(questionario.getCreatedAt());
         questionarioResponseDTO.setUpdatedBy(questionario.getUpdatedBy());
-        questionarioResponseDTO.setCidadao(questionario.getCidadao());
+        questionarioResponseDTO.setFkCidadaoId(questionario.getCidadao().getId());
         return questionarioResponseDTO;
     }
     private void aplicarMudancaEntidadeQuestionarioSemRetorno(
@@ -107,23 +108,19 @@ public class QuestionarioService {
             String token){
         questionario.setPerguntas(questionarioAtualizarDTO.getPerguntas());
         questionario.setRespostas(questionarioAtualizarDTO.getRespostas());
-        questionario.setCidadao(buscarCidadao(questionarioAtualizarDTO.getFkCidadaoId(), token));
+        questionario.setCidadao(buscarCidadao(questionarioAtualizarDTO.getFkCidadaoId()));
     }
 
     private void aplicarCriacaoEntidadeQuestionarioSemRetorno(
             Questionario questionario,
-            QuestionarioCriarDTO questionarioCriarDTO,
-            String token){
+            QuestionarioCriarDTO questionarioCriarDTO){
         questionario.setPerguntas(questionarioCriarDTO.getPerguntas());
         questionario.setRespostas(questionarioCriarDTO.getRespostas());
-        questionario.setCidadao(buscarCidadao(questionarioCriarDTO.getFkCidadaoId(), token));
+        questionario.setCidadao(buscarCidadao(questionarioCriarDTO.getFkCidadaoId()));
     }
 
-    private Cidadao buscarCidadao(UUID idCidadao, String token){
-        CidadaoResponseDTO cidadaoResponseDTO = cidadaoService.buscarCidadaoEspecificoId(idCidadao, token);
-        Cidadao cidadao = new Cidadao();
-        cidadao.setId(cidadaoResponseDTO.getId());
-        // Adicionar mais setagem se precisar pegar outros dados de cidadao.
-        return cidadao;
+    private Cidadao buscarCidadao(UUID idCidadao){
+        return cidadaoRepository.findById(idCidadao)
+                .orElseThrow(() -> new IllegalArgumentException("Cidadao não encontrado"));
     }
 }

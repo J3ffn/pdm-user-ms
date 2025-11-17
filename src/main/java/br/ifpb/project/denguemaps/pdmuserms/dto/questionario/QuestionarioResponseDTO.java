@@ -1,5 +1,6 @@
 package br.ifpb.project.denguemaps.pdmuserms.dto.questionario;
 
+import br.ifpb.project.denguemaps.pdmuserms.dto.cidadao.CidadaoResponseDTO;
 import br.ifpb.project.denguemaps.pdmuserms.entity.Cidadao;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +16,7 @@ public class QuestionarioResponseDTO {
     private UUID id;
     private String perguntas;
     private String respostas;
-    private Cidadao cidadao;
+    private UUID fkCidadaoId;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedBy;
 }

@@ -30,7 +30,8 @@ public class QuestionarioController {
             ){
         String token = authHeader.replace("Bearer ", "");
         return new ResponseEntity<>(
-                questionarioService.registrarQuestionarioComRetorno(questionarioCriarDTO, token),
+                questionarioService.registrarQuestionarioComRetorno(
+                questionarioCriarDTO),
                 HttpStatus.CREATED);
     }
 
