@@ -12,6 +12,7 @@ import br.ifpb.project.denguemaps.pdmuserms.entity.Report;
 import br.ifpb.project.denguemaps.pdmuserms.repository.CidadaoRepository;
 import br.ifpb.project.denguemaps.pdmuserms.repository.EnderecoRepository;
 import br.ifpb.project.denguemaps.pdmuserms.repository.MunicipioRepository;
+import br.ifpb.project.denguemaps.pdmuserms.repository.QuestionarioRepository;
 import br.ifpb.project.denguemaps.pdmuserms.security.exception.ExternalAuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -42,6 +44,7 @@ public class CidadaoService {
     private final EnderecoRepository enderecoRepository;
     private final MunicipioRepository municipioRepository;
     private final ReportService reportService;
+    private final QuestionarioRepository questionarioRepository;
 
     // Dados Keycloak:
     private record AdminTokenResponse(String access_token, int expires_in) {}
@@ -137,6 +140,8 @@ public class CidadaoService {
         return cidadaoResponseDTO;
     }
 
+
+    @Transactional()
     public void deletarCidadao(UUID idCidadao, String token){
         deletarCidadaoEspecifico(idCidadao, token);
     }
@@ -180,11 +185,15 @@ public class CidadaoService {
     private Cidadao salvarCidadaoRetornar(Cidadao cidadao){
         return cidadaoRepository.save(cidadao);
     }
+
+
     private void deletarCidadaoEspecifico(UUID uuid, String token){
         Cidadao cidadao = cidadaoRepository.findById(uuid)
                 .orElseThrow(() -> new IllegalArgumentException("Cidadao não encontrado"));
-        // Buscando todos os report do cidadao deletado:
+        // Deletando todos os reports do cidadao:
         reportService.deletarTodoReportCidadao(uuid);
+        // Deletando todos os questionarios do cidadao:
+        questionarioRepository.deleteAllByCidadaoId(uuid);
         // Deletando usuario na tabela:
         cidadaoRepository.deleteById(uuid);
         // Deletando usuario no keycloak:
