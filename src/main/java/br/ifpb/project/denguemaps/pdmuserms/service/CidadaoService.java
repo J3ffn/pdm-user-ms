@@ -42,6 +42,7 @@ public class CidadaoService {
     private final EnderecoRepository enderecoRepository;
     private final MunicipioRepository municipioRepository;
     private final ReportService reportService;
+    private final QuestionarioService questionarioService;
 
     // Dados Keycloak:
     private record AdminTokenResponse(String access_token, int expires_in) {}
@@ -183,8 +184,10 @@ public class CidadaoService {
     private void deletarCidadaoEspecifico(UUID uuid, String token){
         Cidadao cidadao = cidadaoRepository.findById(uuid)
                 .orElseThrow(() -> new IllegalArgumentException("Cidadao não encontrado"));
-        // Buscando todos os report do cidadao deletado:
+        // Deletando todos os reports do cidadao:
         reportService.deletarTodoReportCidadao(uuid);
+        // Deletando todos os questionarios do cidadao:
+        questionarioService.deletarTodoQuestionarioCidadaoEspecifico(uuid);
         // Deletando usuario na tabela:
         cidadaoRepository.deleteById(uuid);
         // Deletando usuario no keycloak:
