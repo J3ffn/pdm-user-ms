@@ -76,7 +76,7 @@ public class ConviteService {
         return conviteRepository.save(convite);
     }
 
-    @Transactional
+
     public Servidor registrarServidor(String token, RegistrarServidorRequest req) {
         Convite convite = conviteRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Convite inválido"));
@@ -89,9 +89,10 @@ public class ConviteService {
         }
 
         Servidor servidor = returnEntity(convite, req);
+        servidor.setRefKeycloakId(UUID.randomUUID());
         servidor = saveEntity(servidor);
 
-        servidor.setRefKeycloakId(saveKeycloak(req, servidor)); // salvando no keycloak, recuperando como FK
+        servidor.setRefKeycloakId(saveKeycloak(req, servidor));
         servidor.setStatusCreated(Boolean.TRUE);
         servidor = saveEntity(servidor);
 
@@ -155,7 +156,7 @@ public class ConviteService {
 
     private Object buildKeycloakUser(RegistrarServidorRequest dto) {
         return Map.of(
-                "username", dto.nome(),
+                "username", dto.cpf(),
                 "email", dto.email(),
                 "firstName", dto.firstName(),
                 "lastName", dto.lastName(),

@@ -30,6 +30,7 @@ public class ReportService {
     public ReportResponseDTO cadastrarReport(ReportCriacaoDTO reportCriacaoDTO) {
         Report report = formatarReportRetornar(reportCriacaoDTO);
         report.setCreatedAt(OffsetDateTime.now());
+        report.setUpdatedBy(OffsetDateTime.now());
         return retornarResponse(
                 salvarEntidadeRetornar(report)
         );
@@ -64,8 +65,10 @@ public class ReportService {
         deletarEntidadeNaoRetornar(uuid);
     }
 
-
-
+    @Transactional
+    public void deletarTodoReportCidadao(UUID uuidCidadao){
+        reportRepository.deleteAllByCidadaoId(uuidCidadao);
+    }
     // Metodos auxiliares:
     private Report salvarEntidadeRetornar(Report report){
         return reportRepository.save(report);

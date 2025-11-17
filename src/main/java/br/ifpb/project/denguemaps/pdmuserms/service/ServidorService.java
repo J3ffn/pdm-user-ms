@@ -26,10 +26,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor // Usaremos Lombok para injeção de ServidorRepository
+@RequiredArgsConstructor
 public class ServidorService {
 
-    private static final Logger log = LoggerFactory.getLogger(ServidorService.class); // Ajuste do nome da classe
+    private static final Logger log = LoggerFactory.getLogger(ServidorService.class);
     private final ServidorRepository servidorRepository;
     private final SecretariaRepository secretariaRepository;
     private final MunicipioRepository municipioRepository;
@@ -49,33 +49,36 @@ public class ServidorService {
     private String adminPassword;
 
 
-    // MÉTODO DE PERSISTÊNCIA SÍNCRONO
+
     public Servidor saveServidor(Servidor servidor) {
-        // ✅ Chamada SÍNCRONA do JPA
         return servidorRepository.save(servidor);
     }
 
     public ServidorUpdateResponseDTO updateServidor(ServidorUpdateRequestDTO updateRequestDTO, String adminToken) {
         Servidor servidor = servidorRepository.findByCpf(updateRequestDTO.cpf())
                 .orElseThrow(() -> new RuntimeException("Servidor não encontrado no banco de dados com o CPF fornecido."));
-
+        Municipio municipio = municipioRepository.findById(updateRequestDTO.fkMunicipioId())
+                .orElseThrow(() -> new RuntimeException("Municipio não encontrado."));
+        Secretaria secretaria = secretariaRepository.findById(updateRequestDTO.fkSecretariaId())
+                .orElseThrow(() -> new RuntimeException("Secretaria não encontrado."));
         UUID keycloakId = servidor.getRefKeycloakId();
         if (keycloakId == null) {
             throw new ExternalAuthException("O Servidor encontrado não possui FK Keycloak ID. O registro está incompleto.");
         }
+        servidor.setSecretaria(secretaria);
+        servidor.setMunicipio(municipio);
 
-        servidor = returnUpdate(updateRequestDTO, servidor);
-        Servidor updatedEntity = servidorRepository.save(servidor);
+        formatarServidor(updateRequestDTO, servidor);
+        servidorRepository.save(servidor);
 
         updateKeycloakUser(keycloakId, updateRequestDTO, adminToken);
         return new ServidorUpdateResponseDTO(
                 updateRequestDTO.firstName(),
                 updateRequestDTO.lastName(),
                 updateRequestDTO.email(),
-                updatedEntity.getNome(),
-                updatedEntity.getRg(),
-                updatedEntity.getSecretaria(),
-                updatedEntity.getMunicipio()
+                servidor.getNome(),
+                servidor.getRg(),
+                servidor.getCpf()
         );
     }
 
@@ -120,7 +123,6 @@ public class ServidorService {
     }
 
 
-    // ✅ NOVO MÉTODO AUXILIAR PARA BUSCAR DETALHES DO KEYCLOAK
     private Map<String, Object> fetchKeycloakUserDetails(UUID keycloakId, String adminToken) {
         String fetchUrl = String.format("%s/admin/realms/%s/users/%s", keycloakUrl, realm, keycloakId.toString());
 
@@ -144,12 +146,10 @@ public class ServidorService {
 
         String updateUrl = String.format("%s/admin/realms/%s/users/%s", keycloakUrl, realm, keycloakId.toString());
 
-        // Prepara o corpo da requisição APENAS com os campos do Keycloak
         Map<String, Object> keycloakUpdateRepresentation = Map.of(
                 "firstName", dto.cpf(),
                 "lastName", dto.lastName(),
                 "email", dto.email()
-                // Outros campos como username e enabled não são alterados
         );
 
         try {
@@ -159,7 +159,7 @@ public class ServidorService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(keycloakUpdateRepresentation)
                     .retrieve()
-                    .toBodilessEntity(); // Retorna 204 No Content em caso de sucesso (ou 200)
+                    .toBodilessEntity();
 
         } catch (HttpClientErrorException e) {
             log.error("Falha ao atualizar usuário no Keycloak: HTTP {} - Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
@@ -167,12 +167,11 @@ public class ServidorService {
         }
     }
 
-    // Métodos auxiliares (Mantidos sem Mono)
+    // Métodos auxiliares
 
     private UUID findKeycloakIdByEmail(String email, String adminToken) {
         String searchUrl = String.format("%s/admin/realms/%s/users?email=%s", keycloakUrl, realm, email);
 
-        // Keycloak retorna uma lista de UserRepresentation (Map<String, Object>)
         try {
             List<Map<String, Object>> users = restClient.get()
                     .uri(searchUrl)
@@ -226,18 +225,9 @@ public class ServidorService {
         return servidor;
     }
 
-    private Servidor returnUpdate(ServidorUpdateRequestDTO servidorUpdateRequestDTO, Servidor servidor){
-        Secretaria secretaria = secretariaRepository.findById(servidorUpdateRequestDTO.fkSecretariaId()).get();
-        Municipio municipio = municipioRepository.findById(servidorUpdateRequestDTO.fkMunicipioId()).get();
-        Servidor updateEntity = new Servidor();
-        updateEntity.setId(servidor.getId());
-        updateEntity.setSecretaria(secretaria);
-        updateEntity.setMunicipio(municipio);
-        updateEntity.setNome(servidorUpdateRequestDTO.nome());
-        updateEntity.setRg(servidorUpdateRequestDTO.rg());
-        updateEntity.setStatusCreated(Boolean.TRUE);
-        updateEntity.setCpf(servidor.getCpf());
-        updateEntity.setRefKeycloakId(servidor.getRefKeycloakId());
-        return updateEntity;
+    private void formatarServidor(ServidorUpdateRequestDTO servidorUpdateRequestDTO, Servidor servidor){
+        servidor.setNome(servidorUpdateRequestDTO.nome());
+        servidor.setRg(servidorUpdateRequestDTO.rg());
+        servidor.setStatusCreated(Boolean.TRUE);
     }
 }

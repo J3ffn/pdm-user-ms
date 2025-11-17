@@ -10,6 +10,5 @@ public record ServidorUpdateResponseDTO(
         String email,
         String nome,
         String rg,
-        Secretaria secretaria,
-        Municipio municipio
+        String cpf
 ) { }

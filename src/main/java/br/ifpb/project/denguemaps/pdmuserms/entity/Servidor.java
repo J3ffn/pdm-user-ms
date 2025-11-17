@@ -25,7 +25,7 @@ public class Servidor {
     @JoinColumn(name = "fk_secretaria_id")
     private Secretaria secretaria;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "fk_municipio_id")
     private Municipio municipio;
 
