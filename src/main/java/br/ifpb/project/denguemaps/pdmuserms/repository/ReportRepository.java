@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface ReportRepository extends JpaRepository<Report, UUID> {
     public List<Report> findByCidadao_Id(UUID uuid);
+
+    public void deleteAllByCidadaoId(UUID uuid);
 }

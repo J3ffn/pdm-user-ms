@@ -30,7 +30,7 @@ public class Municipio {
     @Enumerated(EnumType.STRING)
     private Estado estado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "fk_secretaria_id", nullable = true)
     private Secretaria secretaria;
 }

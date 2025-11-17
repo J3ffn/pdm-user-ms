@@ -33,10 +33,10 @@ public class ServidorController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/{cpf}")
+    @GetMapping()
     public ResponseEntity<ServidorRegistrationResponseDTO> getServidorByCpf(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
-            @PathVariable String cpf) {
+            @RequestParam String cpf) {
 
         String adminToken = authHeader.replace("Bearer ", "");
 
